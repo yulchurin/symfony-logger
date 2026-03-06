@@ -1,6 +1,6 @@
 # Log Service
 
-A Symfony 7 microservice for collecting, processing, and publishing logs to RabbitMQ via the Symfony Messenger component.
+A Symfony 8 microservice for collecting, processing, and publishing logs to RabbitMQ via the Symfony Messenger component.
 
 Every published message carries:
 
