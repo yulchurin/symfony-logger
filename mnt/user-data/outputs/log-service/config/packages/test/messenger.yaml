@@ -1,0 +1,7 @@
+framework:
+    messenger:
+        transports:
+            async:
+                dsn: 'in-memory://'
+            failed:
+                dsn: 'in-memory://'

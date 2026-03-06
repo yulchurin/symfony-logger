@@ -1,0 +1,57 @@
+services:
+  app:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: log-service-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: dev
+      MESSENGER_TRANSPORT_DSN: amqp://admin:admin@rabbitmq:5672/%2f
+    volumes:
+      - .:/var/www/html
+    ports:
+        - "80:80"
+    depends_on:
+      RabbitMQ:
+        condition: service_healthy
+
+  RabbitMQ:
+    image: rabbitmq:3.13-management-alpine
+    container_name: log-service-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  messenger:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: log-service-messenger
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: dev
+      MESSENGER_TRANSPORT_DSN: amqp://admin:admin@rabbitmq:5672/%2f
+    volumes:
+      - .:/var/www/html
+    working_dir: /var/www/html
+    command: php bin/console messenger:consume async --time-limit=3600 -vv
+    depends_on:
+      RabbitMQ:
+        condition: service_healthy
+
+volumes:
+  rabbitmq-data:
